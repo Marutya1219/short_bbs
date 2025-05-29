@@ -16,4 +16,4 @@
     <p><a href="view.php">▶ 投稿一覧を見る</a></p>
 </body>
 </html>
-あ
+
