@@ -6,7 +6,7 @@ if (!isset($_SESSION['ID'])) {
 }
 
 require_once 'util/Database.php';
-$DB = new Database();
+$DB = new users();
 $pdo = $DB->getConnection();
 
 $success_message = '';
@@ -70,8 +70,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <label for="password">パスワード</label><br>
                     <input type="password" name="password" id="password" required><br>
 
-                    <label for="password_check">パスワードの再確認</label><br>
-                    <input type="password" name="password_check" id="password_check" required><br>
 
                     <button type="submit">登録</button><br>
 
