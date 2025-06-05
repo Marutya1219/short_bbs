@@ -1,83 +1,73 @@
 <?php
+// セッション開始
 session_start();
-if (!isset($_SESSION['ID'])) {
-    header('Location: login.php');
-    exit;
+
+// エラー表示（開発中のみ有効）
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// DB接続情報
+$servername = "";
+$dbUsername = "";
+$dbPassword = "";
+$dbname = "";
+
+// DB接続
+$conn = new mysqli($servername, $dbUsername, $dbPassword, $dbname);
+
+// 接続チェック
+if ($conn->connect_error) {
+    $_SESSION['error'] = "データベース接続に失敗しました。";
+    header("Location: index.php");
+    exit();
 }
 
-require_once 'util/Database.php';
-$DB = new users();
-$pdo = $DB->getConnection();
+// フォームからの値を取得
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $username = isset($_POST['username']) ? preg_replace('/\s/u', '', trim($_POST['username'])) : '';
+    $password = isset($_POST['password']) ? trim($_POST['password']) : '';
 
-$success_message = '';
-$error_message = '';
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = $_POST['ID'];
-    $password = $_POST['password'];
-    $password_check = $_POST['password_check'];
-
-    try {
-        // パスワード再確認チェック
-        if ($password !== $password_check) {
-            $error_message = "パスワードが一致しません。再確認してください。";
-        } else {
-            // IDの重複チェック
-            $stmt = $pdo->prepare("SELECT * FROM management WHERE ID = ?");
-            $stmt->execute([$id]);
-            $admin = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($admin) {
-                $error_message = "このIDは既に登録されています。";
-            } else {
-                // 新規ユーザー登録
-                $stmt = $pdo->prepare("INSERT INTO management (ID, password) VALUES (?, ?)");
-                $stmt->execute([$id, $password]);
-
-                $success_message = "登録成功しました。";
-            }
-        }
-    } catch (Exception $e) {
-        $error_message = "登録中にエラーが発生しました: " . htmlspecialchars($e->getMessage());
+    if (empty($username) || empty($password)) {
+        $_SESSION['error'] = "ユーザー名とパスワードを入力してください。";
+        header("Location: index.php");
+        exit();
     }
+
+    // ユーザー名で検索
+    $stmt = $conn->prepare("SELECT id, username, password FROM user WHERE username = ?");
+    if (!$stmt) {
+        $_SESSION['error'] = "SQLエラー: " . $conn->error;
+        header("Location: index.php");
+        exit();
+    }
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            header("Location: chat.php");
+            exit();
+        } else {
+            $_SESSION['error'] = "パスワードが間違っています。";
+            header("Location: index.php");
+            exit();
+        }
+    } else {
+        $_SESSION['error'] = "ユーザー名が見つかりません。";
+        header("Location: index.php");
+        exit();
+    }
+
+    $stmt->close();
+} else {
+    // POST以外のアクセスはログイン画面へ
+    header("Location: index.php");
+    exit();
 }
+
+$conn->close();
 ?>
-
-<!DOCTYPE html>
-<html lang="ja">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ユーザー管理</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/auth.css">
-</head>
-
-<body>
-    <div class="container">
-        <header>
-            <h1>ユーザー管理</h1>
-        </header>
-        <main>
-            <?php include_once 'util/sidebar.php'; ?>
-            <section class="content">
-                <!-- 登録フォーム -->
-                <form action="#" method="post">
-                    <label for="ID">ID</label><br>
-                    <input type="text" name="ID" id="ID" required><br>
-
-                    <label for="password">パスワード</label><br>
-                    <input type="password" name="password" id="password" required><br>
-
-
-                    <button type="submit">登録</button><br>
-
-                    <!-- メッセージの表示 -->
-                </form>
-            </section>
-        </main>
-    </div>
-</body>
-
-</html>
