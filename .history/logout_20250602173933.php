@@ -8,6 +8,6 @@
     session_destroy(); 
 
     // ログイン画面に遷移
-    header("Location: localhost/short_bbs/login.php");
+    header("Location: short_bbs/login.php");
 ?>
 
