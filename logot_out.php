@@ -4,7 +4,12 @@
     // セッションの値を初期化
     $_SESSION = array(); 
 
-    //セッションを破棄
+    // セッションを破棄
     session_destroy(); 
+
+    // ログイン画面に遷移
+    header("Location: login_test.php");
 ?>
+
+
 
