@@ -50,4 +50,3 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 </body>
 </html>
-

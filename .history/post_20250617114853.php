@@ -8,8 +8,8 @@ $comment = htmlspecialchars($_POST['comment'] ?? '');
 
 // データベース接続（例）
 $dsn = 'mysql:host=mysql323.phy.lolipop.lan;dbname=LAA1602729-users;charset=utf8';
-$user = 'LAA1602729';
-$password = 'shortbbs6';
+$user = 'root';
+$password = '';
 
 try {
     $pdo = new PDO($dsn, $user, $password);
